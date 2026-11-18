@@ -1,4 +1,4 @@
-
+from nyc_transport_pipeline.load.rejected_loader import load_rejected_batch
 from datetime import datetime
 from decimal import Decimal
 from sqlalchemy import MetaData, Table
@@ -10,8 +10,15 @@ from nyc_transport_pipeline.load.checkpoint import update_checkpoint
 logger = setup_logger("load")
 
 
-def load_subway_batch(records: list[dict], next_offset: int | None = None,) -> int:
-    if not records:
+def load_subway_batch(
+    records: list[dict],
+    rejected_records: list[dict] | None = None,
+    next_offset: int | None = None,
+) -> int:
+
+    rejected_records = rejected_records or []
+
+    if not records and not rejected_records:
         return 0
 
     engine = get_engine()
@@ -65,14 +72,26 @@ def load_subway_batch(records: list[dict], next_offset: int | None = None,) -> i
             rows.append(row)
 
         with engine.begin() as connection:
-            stmt = insert(subway_table).values(rows)
-            stmt = stmt.on_conflict_do_nothing(
-                constraint="uq_subway_hourly_natural_key"
-            )
-            stmt = stmt.returning(subway_table.c.id)
 
-            result = connection.execute(stmt)
-            inserted_count = len(result.fetchall())
+            inserted_count = 0
+
+            if rows:
+                stmt = insert(subway_table).values(rows)
+
+                stmt = stmt.on_conflict_do_nothing(
+                    constraint="uq_subway_hourly_natural_key"
+                )
+
+                stmt = stmt.returning(subway_table.c.id)
+
+                result = connection.execute(stmt)
+                inserted_count = len(result.fetchall())
+
+            rejected_count = load_rejected_batch(
+                connection=connection,
+                pipeline_name="subway",
+                rejected_records=rejected_records,
+            )
 
             if next_offset is not None:
                 update_checkpoint(
@@ -82,8 +101,9 @@ def load_subway_batch(records: list[dict], next_offset: int | None = None,) -> i
                 )
 
         logger.info(
-            "Successfully loaded %s subway records, skipped %s duplicates",
+            "Subway batch processed: inserted=%s | rejected=%s | duplicates=%s",
             inserted_count,
+            rejected_count,
             len(rows) - inserted_count,
         )
 
@@ -97,8 +117,15 @@ def load_subway_batch(records: list[dict], next_offset: int | None = None,) -> i
         engine.dispose()
 
 
-def load_bus_batch(records: list[dict], next_offset: int | None = None,) -> int:
-    if not records:
+def load_bus_batch(
+    records: list[dict],
+    rejected_records: list[dict] | None = None,
+    next_offset: int | None = None,
+) -> int:
+
+    rejected_records = rejected_records or []
+
+    if not records and not rejected_records:
         return 0
 
     engine = get_engine()
@@ -139,14 +166,26 @@ def load_bus_batch(records: list[dict], next_offset: int | None = None,) -> int:
             rows.append(row)
 
         with engine.begin() as connection:
-            stmt = insert(bus_table).values(rows)
-            stmt = stmt.on_conflict_do_nothing(
-                constraint="uq_bus_hourly_natural_key"
-            )
-            stmt = stmt.returning(bus_table.c.id)
 
-            result = connection.execute(stmt)
-            inserted_count = len(result.fetchall())
+            inserted_count = 0
+
+            if rows:
+                stmt = insert(bus_table).values(rows)
+
+                stmt = stmt.on_conflict_do_nothing(
+                    constraint="uq_bus_hourly_natural_key"
+                )
+
+                stmt = stmt.returning(bus_table.c.id)
+
+                result = connection.execute(stmt)
+                inserted_count = len(result.fetchall())
+
+            rejected_count = load_rejected_batch(
+                connection=connection,
+                pipeline_name="bus",
+                rejected_records=rejected_records,
+            )
 
             if next_offset is not None:
                 update_checkpoint(
@@ -156,8 +195,9 @@ def load_bus_batch(records: list[dict], next_offset: int | None = None,) -> int:
                 )
 
         logger.info(
-            "Successfully loaded %s bus records, skipped %s duplicates",
+            "Bus batch processed: inserted=%s | rejected=%s | duplicates=%s",
             inserted_count,
+            rejected_count,
             len(rows) - inserted_count,
         )
 

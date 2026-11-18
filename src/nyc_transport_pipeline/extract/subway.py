@@ -14,7 +14,10 @@ def fetch_subway_data(
 ) -> Iterator[list[dict]]:
 
     params = {
-        "$where": "transit_timestamp >= '2025-06-01T00:00:00'",
+        "$where": (
+            "transit_timestamp >= '2025-06-01T00:00:00' "
+            "AND transit_timestamp < '2025-06-15T00:00:00'"
+        ),
         "$order": (
             "transit_timestamp ASC, "
             "station_complex_id ASC, "
