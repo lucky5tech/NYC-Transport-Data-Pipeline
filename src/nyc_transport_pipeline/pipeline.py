@@ -1,7 +1,10 @@
 
 from nyc_transport_pipeline.extract.subway import fetch_subway_data
 from nyc_transport_pipeline.extract.bus import fetch_bus_data
-
+from nyc_transport_pipeline.transform.sql_runner import (
+    run_staging_transformations,
+    run_analytics_transformations,
+)
 from nyc_transport_pipeline.load.postgres_loader import (
     load_subway_batch,
     load_bus_batch,
@@ -196,6 +199,22 @@ def run_pipeline(
     except Exception:
         set_checkpoint_status("bus", "failed")
         raise
+
+        # Run transformations only after both sources are completed
+    if subway_status == "completed" and bus_status == "completed":
+        logger.info("Starting database transformations")
+
+        run_staging_transformations()
+        run_analytics_transformations()
+
+        logger.info("All database transformations completed")
+    else:
+        logger.warning(
+            "Skipping transformations: "
+            "subway_status=%s, bus_status=%s",
+            subway_status,
+            bus_status,
+        )
 
 
     logger.info(

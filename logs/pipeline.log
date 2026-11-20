@@ -28901,3 +28901,27 @@ Bus: received=0 | inserted=0 | rejected=0 | duplicates=0
 2026-11-19 20:22:38,057 - pipeline - INFO - Pipeline completed.
 Subway: received=0 | inserted=0 | rejected=0 | duplicates=0
 Bus: received=0 | inserted=0 | rejected=0 | duplicates=0
+2026-11-20 23:00:07,235 - pipeline - INFO - Starting NYC Transport Pipeline
+2026-11-20 23:00:07,235 - pipeline - INFO - Starting subway extraction and loading
+2026-11-20 23:00:07,397 - pipeline - INFO - Resuming subway from offset=1258510
+2026-11-20 23:00:07,424 - checkpoint - INFO - Checkpoint status updated: subway | status=running
+2026-11-20 23:00:07,424 - extract - INFO - Starting API request: https://data.ny.gov/resource/5wq4-mkjj.json | offset=1258510
+2026-11-20 23:01:07,051 - extract - INFO - Successfully received 0 records | offset=1258510
+2026-11-20 23:01:07,154 - checkpoint - INFO - Checkpoint status updated: subway | status=completed
+2026-11-20 23:01:07,155 - pipeline - INFO - Starting bus extraction and loading
+2026-11-20 23:01:07,177 - pipeline - INFO - Resuming bus from offset=3427200
+2026-11-20 23:01:07,197 - checkpoint - INFO - Checkpoint status updated: bus | status=running
+2026-11-20 23:01:07,197 - extract - INFO - Starting API request: https://data.ny.gov/resource/gxb3-akrn.json | offset=3427200
+2026-11-20 23:01:33,019 - extract - INFO - Successfully received 0 records | offset=3427200
+2026-11-20 23:01:33,047 - checkpoint - INFO - Checkpoint status updated: bus | status=completed
+2026-11-20 23:01:33,047 - pipeline - INFO - Starting database transformations
+2026-11-20 23:01:33,048 - transform - INFO - Starting RAW to STAGING transformations
+2026-11-20 23:03:08,265 - transform - INFO - Successfully executed SQL: load_hourly_ridership.sql
+2026-11-20 23:03:08,270 - transform - INFO - RAW to STAGING transformations completed
+2026-11-20 23:03:08,271 - transform - INFO - Starting STAGING to ANALYTICS transformations
+2026-11-20 23:04:44,293 - transform - INFO - Successfully executed SQL: load_hourly_facts.sql
+2026-11-20 23:04:44,300 - transform - INFO - STAGING to ANALYTICS transformations completed
+2026-11-20 23:04:44,300 - pipeline - INFO - All database transformations completed
+2026-11-20 23:04:44,301 - pipeline - INFO - Pipeline completed.
+Subway: received=0 | inserted=0 | rejected=0 | duplicates=0
+Bus: received=0 | inserted=0 | rejected=0 | duplicates=0
