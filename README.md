@@ -384,4 +384,4 @@ pytest
 
 ---
 
-**Проект демонстрирует практические навыки Data Engineering:** Python, SQL, ETL/ELT, PostgreSQL, API Integration, Data Validation, Docker и аналитическая визуализация.
+**Проект демонстрирует практические навыки:** Python, SQL, ETL/ELT, PostgreSQL, API Integration, Data Validation, Docker и аналитическая визуализация.
