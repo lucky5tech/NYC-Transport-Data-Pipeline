@@ -1,0 +1,76 @@
+
+services:
+  superset-db:
+    image: postgres:16
+    container_name: superset_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: superset
+      POSTGRES_USER: superset
+      POSTGRES_PASSWORD: ${SUPERSET_DB_PASSWORD:?Set SUPERSET_DB_PASSWORD in .env}
+    volumes:
+      - superset_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U superset -d superset"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  superset-init:
+    image: transport-new-york-superset:6.0.0
+    build:
+      context: .
+      dockerfile: Dockerfile.superset
+    container_name: superset_init
+    depends_on:
+      superset-db:
+        condition: service_healthy
+    environment:
+      SUPERSET_SECRET_KEY: ${SUPERSET_SECRET_KEY:?Set SUPERSET_SECRET_KEY in .env}
+      SUPERSET_DB_PASSWORD: ${SUPERSET_DB_PASSWORD:?}
+      SUPERSET_ADMIN_PASSWORD: ${SUPERSET_ADMIN_PASSWORD:?}
+      SUPERSET_CONFIG_PATH: /app/pythonpath/superset_config.py
+      PYTHONPATH: /app/pythonpath
+    volumes:
+      - ./superset_config.py:/app/pythonpath/superset_config.py:ro
+    command: >
+      /bin/sh -c "
+      superset db upgrade &&
+      superset fab create-admin
+      --username admin
+      --firstname Admin
+      --lastname User
+      --email admin@example.com
+      --password \"$$SUPERSET_ADMIN_PASSWORD\" &&
+      superset init
+      "
+    restart: "no"
+
+  superset:
+    image: transport-new-york-superset:6.0.0
+    build:
+      context: .
+      dockerfile: Dockerfile.superset
+    container_name: superset
+    restart: unless-stopped
+    depends_on:
+      superset-init:
+        condition: service_completed_successfully
+    ports:
+      - "8088:8088"
+    environment:
+      SUPERSET_SECRET_KEY: ${SUPERSET_SECRET_KEY:?Set SUPERSET_SECRET_KEY in .env}
+      SUPERSET_DB_PASSWORD: ${SUPERSET_DB_PASSWORD:?}
+      SUPERSET_CONFIG_PATH: /app/pythonpath/superset_config.py
+      PYTHONPATH: /app/pythonpath
+    volumes:
+      - superset_home:/app/superset_home
+      - ./superset_config.py:/app/pythonpath/superset_config.py:ro
+    command: >
+      /bin/sh -c "
+      /usr/bin/run-server.sh
+      "
+
+volumes:
+  superset_db_data:
+  superset_home:
