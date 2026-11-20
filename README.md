@@ -384,4 +384,8 @@ pytest
 
 ---
 
+<img width="1858" height="1102" alt="image" src="https://github.com/user-attachments/assets/87b78db7-d110-44e1-84fd-e2e6d8501b91" />
+<img width="1852" height="824" alt="image" src="https://github.com/user-attachments/assets/2f63be75-9087-4be9-b970-11d0d4d061dc" />
+
+
 **Проект демонстрирует практические навыки:** Python, SQL, ETL/ELT, PostgreSQL, API Integration, Data Validation, Docker и аналитическая визуализация.
